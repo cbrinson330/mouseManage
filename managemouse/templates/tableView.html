@@ -1,0 +1,57 @@
+<html>
+<head>
+  <link href="http://fonts.googleapis.com/css?family=Gudea:400,700" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a class="shade">&nbsp;</a>
+      <h1>Table View</h1>
+    </div><!--/header-content -->
+  </header>
+  <div class="wrapper main">
+    <table id="sortTable"> 
+      <thead>
+	<tr>
+	  <th>MLB #</th>
+	  <th>Gender</th>
+	  <th>Name</th>
+	  <th>Parents</th>
+	  <th>Genotype</th>
+	  <th>Genotype2</th>
+	  <th>Notes</th>
+	  <th>Cage</th>
+	  <th>Strain</th>
+	</tr>
+      </thead>
+      <tbody>
+	{% if mice %}
+	  {% for mouse in mice %}
+	    <tr class="mouse-{{mouse.id}}">
+	      <td>{{mouse.mlb}}</td>
+	      <td>{{mouse.gender}}</td>
+	      <td>{{mouse.name}}</td>
+	      <td>{{mouse.parents}}</td>
+	      <td>{{mouse.genotype}}</td>
+	      <td>{{mouse.genotypeTwo}}</td>
+	      <td>{{mouse.notes}}</td>
+	      <td>{{mouse.cage}}</td>
+	      <td>{{mouse.strain}}</td>
+	    </tr>
+	  {% endfor %}
+	{% else %}
+	  <tr><td>No Mice Available</td></tr>
+	{% endif %}
+      </tbody>
+    </table>
+  </div><!-- /wrapper-main -->
+  <script type="text/javascript" src="static/scripts/jquery.js"></script>
+  <script type="text/javascript" src="static/scripts/jquery.dataTables.min.js"></script>
+  <script>
+    $('document').ready(function(){
+      $("#sortTable").dataTable();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,428 @@
+<html>
+<head>
+  <title>Sortable</title>
+  <link href="http://fonts.googleapis.com/css?family=Gudea:400, 700" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+<header> 
+  <div class="header-content"> 
+    <a class="shade">&nbsp;</a>
+     <div class="butn_wrapper">
+       <a href="#mouseAdd" id="addMouseBtn" class="button">Add Mouse</a>
+       <a href="#cageAdd" id="addCageBtn" class="button-two">Add Cage</a>
+     </div><!-- /butn_wrapper -->
+     <h1>Curent Cages</h1>
+  </div><!-- /header-content -->
+</header>
+<div class="wrapper main">
+<div class="error"></div>
+  {% if cages %} {% for cage in cages %}
+      <div class="cage {% if cage.isBreeding %}is-breeding{% endif %}" id="cage-{{cage.id}}">
+	<a class="close ir" href="#">Delete</a>
+	<h3>{{ cage.cageName }}</h3>
+	<ul class="droptrue ui-sortable">
+	  {% if mice %}
+	    {% for mouse in mice %}
+	      {% if mouse.cage.id == cage.id %}
+		<li id="{{mouse.id}}" class="mouse-{{mouse.id}}">{{ mouse.name }}</li>
+	      {% endif %}
+	    {% endfor %}
+	  {% endif %}
+	</ul>
+      </div><!-- /cage -->
+    {% endfor %}	
+    <div class="cage" id="cage-trash">
+      <h3>Trash</h3>
+      <ul id="trash" class="droptrue"></ul>
+    </div><!-- /cage -->
+  {% else %}
+    <p>No cages available</p>
+  {% endif %}
+  {% if mice %}
+    {% for m in mice %}
+	<a id="mouse-{{m.id}}" class="detaillink" href="#panel">&nbsp;</a>
+    {% endfor %}
+  {% endif %}
+</div><!-- /wrapper main -->
+<!-- define modal windows -->
+<div id="panel" style="display:none;">
+  <div class="card front">
+    <a class="modal-close">&nbsp;</a>
+    <h4 class="modal-name"></h4>
+    <p><span class="label">Parents:</span><br /><span class="modal-parents"></span></p>
+    <p><span class="label">Genotype:</span><br /><span class="modal-genotype"></span></p>
+    <p><span class="label">cage:</span><br /><span class="modal-cage"></span></p>
+    <a class="flipControl">Edit</a>
+  </div><!-- /front -->
+  <div class="card back">
+    <a class="modal-close">&nbsp;</a>
+    <h4>Change Mouse Details</h4>
+    <form action="#" id="mouseEdit">
+      <p><label class="label">Name</label><input class="input-name" type="text" /></p>
+      <p><label class="label">Parents</label><input class="input-parents" type="text" /></p>
+      <p><label>Genotype</label><input class="input-genotype" type="text" /></p>
+      <p class="clear"><a class="flipControl" id="change-mouse-detail">Save</a></p>
+    </form>
+  </div><!-- /back -->
+</div><!-- /panel -->
+
+<div id="mouseAdd" style="display:none;">
+  <div class="card back">
+    <a class="modal-close">&nbsp;</a>
+    <h4>Add A Mouse</h4>
+    <form action="#" id="mouseCreate"> <p><label class="label">Name</label><input class="createMouse-input-name" type="text" /></p>
+      <p><label class="label">Parents</label><input class="createMouse-input-parents" type="text" /></p>
+      <p><label class="label">Genotype</label><input class="createMouse-input-genotype" type="text" /></p>
+      <p><label class="label">GenotypeTwo</label><input class="createMouse-input-genotypeTwo" type="text" /></p>
+      <p><label class="label">Gender</label><input class="createMouse-input-gender" type="text" /></p>
+      <p><label class="label">MLB#</label><input class="createMouse-input-mlb" type="text" /></p>
+      <p><label class="label">Notes</label><input class="createMouse-input-notes" type="text" /></p>
+      <p><label class="label">Cage</label><select class="createMouse-input-cage"></select></p>
+      <p class="clear"><a class="flipControl" id="create-mouse">Save</a></p>
+    </form>
+  </div><!-- /back -->
+</div><!-- /panel -->
+
+<div id="cageAdd" style="display:none;">
+  <div class="card back">
+    <a class="modal-close">&nbsp;</a>
+    <h4>Add A Cage</h4>
+    <form action="#" id="cageCreate">
+      <p><label>Name</label><input class="createCage-input-name" type="text" /></p>
+      <p><label class="label">is Breeding<input class="createCage-input-isBreeding" name="isbreeding-checkbox" value="true" type="checkbox" /></p>
+      <p class="clear"><a class="flipControl" id="create-cage">Save</a></p>
+    </form>
+  </div><!-- /back --> </div><!-- /panel --> 
+<!-- /modal windows -->
+<!-- <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script> -->
+<script type="text/javascript" src="static/scripts/jquery.js"></script>
+<script type="text/javascript" src="static/scripts/scripts.js"></script>
+<script type="text/javascript">
+	// DOCUMENT READY
+		$(document).ready(function() {
+			
+			
+		  // handle mouse move to new cage or trash
+			detailLinkPos();
+  			var draggedId;
+			var newCageId;
+			var counter = 0;
+			$(".draggable").draggable({
+				connectToSortable:"ul.droptrue",
+				helper:"clone",
+				revert:"invalid"
+			});
+			
+			
+			$("ul.droptrue").sortable({
+				connectWith: "ul.droptrue",
+				placeholder: 'ui-state-highlight',
+				start: function(event ,ui){
+					draggedId = ui.item.context.classList[0];
+					var draggedIdHolder = draggedId.split("-");
+					draggedId = draggedIdHolder[1];
+					$(".detaillink").fadeOut("fast");
+				},
+				deactivate: function(event, ui){
+				 	detailLinkPos();// RECALCULATE LINK POSITIONS AFTER A MOVE.
+				},
+				update: function(event, ui){
+				  counter++;
+				  if (counter == 2){
+				    var droppedId = $(this).attr('id');
+				    var rawCageId = $(this).parents('div').attr('id');
+				    var cageidholder = rawCageId.split("-");
+				    newCageId = cageidholder[1];
+				    postMove(draggedId, newCageId);
+				    counter = 0;
+				  }
+				}
+			});	
+
+			function postMove(draggedId, newCageid){
+			    if(newCageid != 'trash'){
+			      urlBuild = 'restAPI/mouse/put?';
+			      urlBuild += 'id=' + draggedId;
+			      urlBuild += '&cageId=' + newCageid;
+			    }
+			    else {
+			      urlBuild = 'restAPI/mouse/delete';
+			      urlBuild += '?id=' + draggedId;
+			    }
+			   $.ajax({
+			     url: urlBuild,
+			     success: function(data){
+			       console.log(data);
+			     }
+			  });// end ajax
+			}//postMove 
+		});
+
+		// HANDLE CAGE DELETE
+		$('.cage .close').live('click',function(){
+		  $(this).css('opacity','0.5');
+		  var rawCageId = $(this).parent('.cage').attr('id');
+		  var cageId = rawCageId.split('-');
+		  var url = "restAPI/cage/delete";
+		  url += '?id='+cageId[1];
+		  if ($(this).parent('.cage').children('ul').children('li').length <= 0){
+		    $.ajax({
+		      url:url,
+		      success: function(data){
+			console.log(data);
+			$('#'+rawCageId).fadeOut(250);
+		      }
+		    });
+		  }
+		  else{
+		    console.log('error too many mice on the dance floor');
+		    $('error').show().text('Your cage has mice in it please move or delete them before deleteing cage');
+		  }
+		});
+
+
+		//HANDLE MOUSE DETAIL called from leanmodal
+		function getMouseInfo(mouseId){
+		  var url = 'restAPI/mouse/get';
+		  url += '?id='+ mouseId;
+		  $('.card h4').attr('id', mouseId);
+		  $.ajax({
+		    url:url,
+		    success: function(data){
+		      console.log(data);
+		      updateValues(data);
+		    }
+		  });
+		}
+		
+	// Handle change of mouse info TODO add change cage functionality
+	      $("#change-mouse-detail").click(function(){
+		var url = 'restAPI/mouse/put';
+		var name = $(".input-name").val();
+		var genotype = $('.input-genotype').val();
+		var parents = $('.input-parents').val();
+		var mouseId = $('.back.card' + ' h4').attr('id');  
+		url += '?id='+mouseId;
+		url += '&name='+name;
+		url += '&genotype='+genotype;
+		url += '&parents='+parents;
+		$.ajax({
+		  url:url,
+		  success: function(data){
+		    console.log(data);
+		    if(data.code == "200"){
+		      var mouseData = {'content':{
+					      'id':mouseId,
+					      'name':name,
+					      'genotype':genotype,
+					      'parents':parents
+				      }};
+		      updateValues(mouseData);
+		    }
+		  }
+		});
+	      });
+  
+	// HANDLE MOUSE CREATE
+	$("#create-mouse").click(function(){
+	  //check that all required inputs have a value
+	  // TODO make these independant use generated array instead of hardcoding values
+	  var name = $(".createMouse-input-name").val();
+	  var genotype = $(".createMouse-input-genotype").val();
+	  var genotypeTwo = $(".createMouse-input-genotypeTwo").val();
+	  var gender = $(".createMouse-input-gender").val();
+	  var mlb = $(".createMouse-input-mlb").val();
+	  var notes = $(".createMouse-input-notes").val();
+	  var parents = $(".createMouse-input-parents").val();
+	  var cage = $(".createMouse-input-cage").val();
+	  if (name && cage && genotype && parents){
+	    // if they arn't missing any values
+	    var url = 'restAPI/mouse/post';
+	    url += '?name='+name;
+	    url += '&genotype=' + genotype;
+	    url += '&genotypeTwo=' + genotypeTwo;
+	    url += '&parents=' + parents;
+	    url += '&cage=' + cage;
+	    url += '&gender=' + gender;
+	    url += '&mlb=' + mlb;
+	    url += '&notes=' + notes;
+	    
+	    $.ajax({
+	      url:url,
+	      success: function(data){
+		console.log(data);
+
+		// close modal
+		$("#lean_overlay").fadeOut(200);
+		$("#mouseAdd").css({'display':'none'});
+
+		// clear data from modal
+		/*$(".createMouse-input-name").val("");
+		$(".createMouse-input-genotype").val("");
+		$(".createMouse-input-parents").val("");
+		$(".createMouse-input-cage").val("");*/
+	      
+		// add new mouse to cage
+		var mouseToAppend = '<li id="'+data.content.mouseId+'" class="mouse-' + data.content.mouseId +'">'+data.content.name+'</li>';
+		var linkToAppend = '<a id="mouse-'+ data.content.mouseId +'" class="detaillink" href="#panel">&nbsp;</a>';
+		$("#cage-" + data.content.cageId + " ul").append(mouseToAppend);
+		$(".wrapper.main").append(linkToAppend);
+		detailLinkPos();
+		$(".detaillink").leanModal({ 
+			top : 50, 
+			overlay : 0.7, 
+			closeButton: ".modal-close" 
+			});
+	      }
+	    });
+	  }
+	  else{
+	    $('.error').text('Please fill in all values').fadeIn(250);
+	  }
+	});
+
+	// Handle Cage Create
+	$("#create-cage").click(function(){
+	  var isBreeding;
+	  //check that all required inputs have a value
+	  var name = $(".createCage-input-name").val();
+	  if($('.createCage-input-isBreeding:checked').length > 0){
+	    isBreeding = 1;
+	  }
+	  else{
+	    isBreeding = 0;
+	  }
+	  if (name){
+	    var url = 'restAPI/cage/post';
+	    url += '?name='+name;
+	    url += '&isBreeding='+isBreeding;
+	    $.ajax({
+	      url:url,
+	      success: function(data){
+		console.log(data);
+		if(data.code != "201"){
+		  
+		}
+		else{
+
+		// Close Modal
+		$("#lean_overlay").fadeOut(200);
+		$("#cageAdd").css({'display':'none'});
+	  
+		// Clear Modal Data
+		$(".createCage-input-name").val("");
+		$(".createCage-input-isBreeding").prop('checked', false);
+    
+		// Append cage before trash
+		var newcage
+		if(isBreeding > 0){
+		 Newcage = '<div class="cage is-breeding" id="cage-' + data.content.cageId + '">';
+		}
+		else{
+		 Newcage = '<div class="cage" id="cage-' + data.content.cageId + '">';
+		}
+		Newcage += '<a class="close ir" href="#">delete</a>';
+		Newcage += '<h3>'+data.content.cageName+'</h3>';
+		Newcage += '<ul class="droptrue ui-sortable"></ul>';
+		Newcage += '</div>';
+		$("#cage-trash").before(Newcage);
+		}
+	      }
+	    });
+	  }
+	});
+
+	// SET UP MODALS
+		$(".detaillink").leanModal({ 
+			top : 50, 
+			overlay : 0.7, 
+			closeButton: ".modal-close" 
+			});
+			
+		$("#addMouseBtn").leanModal({ 
+			top : 50, 
+			overlay : 0.7, 
+			closeButton: ".modal-close" 
+			});
+			
+		$("#addCageBtn").leanModal({ 
+			top : 50, 
+			overlay : 0.7, 
+			closeButton: ".modal-close" 
+			});
+	
+	
+	
+	// SET UP CARD FLIPS		
+		$(".front .flipControl").live('click' , function(){
+			$("#panel").addClass('flip');
+		});
+		
+		$(".back .flipControl").live('click' , function(){
+			$("#panel").removeClass('flip');
+		}); 
+		
+	
+	// POSITION EDIT LINKS TODO optimize functoin to only run on modified cages after initial load
+		function detailLinkPos(){
+		$("ul.droptrue").each(function(){
+			$(this).children("li").each(function(){
+				var mouseID = $(this).attr("id");
+				var offsetCords = $(this).offset();
+				var topCords = offsetCords.top + 7;
+				var leftCords = offsetCords.left + 84;
+				$("#mouse-" + mouseID).offset({top:topCords, left:leftCords});
+				$("#mouse-" + mouseID).fadeIn("fast");
+			});
+		});
+		}
+	// HELPER FUNCTION FOR UPDATING VALUES IN MODAL WINDOW
+		function updateValues(data){
+		  $(".modal-name").text(data.content.name);
+		  $(".input-name").val(data.content.name);
+		  console.log(data);
+		  $("#"+data.id).text(data.content.name);
+		  $(".modal-genotype").text(data.content.genotype);
+		  $(".input-genotype").val(data.content.genotype);
+		  $(".modal-parents").text(data.content.parents); 
+		  $(".input-parents").val(data.content.parents);
+		  $(".modal-cage").text(data.content.cage);
+		  $(".input-cage").val(data.content.cage);
+		}
+
+	// HELPER FUNCTION FOR UPDATING CAGE LIST
+	  function setCagesDropdown(target, mouseId){
+	    var i = 0;
+	    var cages;
+	    var mice;
+	    $.ajax({
+	      url:'restAPI/cages/get',
+	      success: function(data){
+		console.log(data);
+		cages = data.content;
+		$(target).html('');
+		for(var c in cages){
+		  var option = '<option value="' + cages[c].cageId +'">' + cages[c].cageName + '</option>';
+		  $(target).append(option);
+		  }
+	      }
+	    });
+
+	    if (mouseId){
+	      $.ajax({
+		url:'restAPI/mouse/get?id='+ mouseId,
+		success: function(data){
+		  console.log(data);
+		  mice = data.content;
+		}
+	      });
+	    }
+	    
+	  }
+
+
+	</script>
+      <div id="lean_overlay"></div>
+    </body>
+</html>

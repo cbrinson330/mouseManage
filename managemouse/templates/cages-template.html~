@@ -1,0 +1,50 @@
+<html>
+	<head>
+		<title>Sortable</title>
+		<link href="http://fonts.googleapis.com/css?family=Gudea:400, 700" rel="stylesheet" type="text/css">
+		<link rel="stylesheet" href="/static/css/styles.css">
+	</head>
+	<body>
+		<header>
+			<div class="header-content">
+				<a class="shade">&nbsp;</a>
+				<div class="butn_wrapper">
+					<a href="#mouseAdd" id="addMouseBtn" class="button">Add Mouse</a>
+					<a href="#cageAdd" id="addCageBtn" class="button-two">Add Cage</a>
+				</div><!-- /butn_wrapper -->
+				<h1>Curent Cages</h1>
+			</div><!-- /header-content -->
+		</header>
+		<div class="wrapper main">
+		{% if cages %}
+			{% for cage in cages %}
+				<div class="cage {% if cage.isBreeding %}is-breeding{% endif %}">
+					<a class="close ir" href="#">Delete</a>
+					<h3>{{ cage.cageName }}</h3>
+					<ul class="droptrue ui-sortable">
+					{% if mice %}
+						{% for mouse in mice %}
+							{% if mouse.cage.id == cage.id %}
+							<li class="mouse-{{mouse.id}}">{{ mouse.name }}</li>
+							{% endif %}
+						{% endfor %}
+					{% endif %}
+					</ul>
+				</div><!-- /cage -->
+			{% endfor %}	
+		{% else %}
+			<p>No cages available</p>
+		{% endif %}
+		{% if mice %}
+			{% for m in mice %}
+				<a id="mouse-{{m.id}}" class="detaillink" href="#panel">&nbsp;</a>
+			{% endfor %}
+		{% endif %}
+		</div><!-- /wrapper main -->
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js></script>
+	<script type="text/javascript" src="static/scripts/scripts.js"></scripts>
+	<script>
+	
+	</script>
+	</body>
+</html>
