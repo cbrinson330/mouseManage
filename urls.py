@@ -18,7 +18,7 @@ urlpatterns = patterns('',
 
     # Examples:
     # Main page
-	url(r'^$/', init),
+	url(r'^$', init),
     # Table View
 	url('^tableView', tableView),
     # url(r'^mouseManage/', include('mouseManage.foo.urls')),

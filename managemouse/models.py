@@ -1,5 +1,8 @@
 from django.db import models
 
+class strain(models.Model):
+  strainName = models.CharField(max_length=200)
+
 class cage(models.Model):
   cageName = models.CharField(max_length=200)
   isBreeding = models.BooleanField()
@@ -22,4 +25,3 @@ class mice(models.Model):
   genotypeTwo = models.CharField(max_length=50)
   notes = models.CharField(max_length=200)
   cage = models.ForeignKey(cage)
-  strain = models.CharField(max_length=200)
