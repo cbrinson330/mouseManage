@@ -6,6 +6,7 @@ class strain(models.Model):
 class cage(models.Model):
   cageName = models.CharField(max_length=200)
   isBreeding = models.BooleanField()
+  strain = models.ForeignKey(strain, null=True, blank=True)
 
 class mice(models.Model):
   MALE = 'MA'
