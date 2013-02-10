@@ -2,10 +2,14 @@ from django.conf.urls.defaults import patterns, include, url
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
-from managemouse.views import init, restCagePut, restCageGet, restCagesGet, restCagePost, restCageDelete, restMouseGet, restMousePost, restMouseDelete, restMousePut, tableView
+from managemouse.views import init, restStrainPost, restStrainsGet, restStrainGet, restStrainDelete, restCagePut, restCageGet, restCagesGet, restCagePost, restCageDelete, restMouseGet, restMousePost, restMouseDelete, restMousePut, tableView
 admin.autodiscover()
 
 urlpatterns = patterns('',
+	('^restAPI/strain/get/$', restStrainGet),
+	('^restAPI/strains/get/$', restStrainsGet),
+	('^restAPI/strain/delete/$', restStrainDelete),
+	('^restAPI/strain/post/$', restStrainPost),
 	('^restAPI/cage/post/$', restCagePost),
 	('^restAPI/cage/get/$', restCageGet),
 	('^restAPI/cages/get/$', restCagesGet),
@@ -18,7 +22,9 @@ urlpatterns = patterns('',
 
     # Examples:
     # Main page
-	url(r'^$', init),
+	url('^gridView/(?P<strainSelected>.+)/', init),
+	#url(r'^$', initTest),
+	
     # Table View
 	url('^tableView', tableView),
     # url(r'^mouseManage/', include('mouseManage.foo.urls')),

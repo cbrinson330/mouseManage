@@ -3,15 +3,19 @@ from django.utils import simplejson
 from django.template.loader import get_template
 from django.template import Context
 from django.shortcuts import render_to_response
-from managemouse.models import cage, mice
+from managemouse.models import cage, mice, strain
 import datetime
 
 
-def init(request):
-  cages = cage.objects.all()
+def init(request, strainSelected):
+  s = strain.objects.all()
+  strainToPull = strain.objects.filter(strainName = strainSelected)
+  cages = cage.objects.filter(strain = strainToPull)
   m = mice.objects.all()
   return render_to_response('cages-template.html', {'cages': cages,
-							  'mice': m})
+							  'mice': m,
+							  'strain':strainSelected,
+							  'strainsAll':s})
 def tableView(request):
   m = mice.objects.all()
   return render_to_response('tableView.html', {'mice':m})
@@ -55,6 +59,127 @@ def responseEncode(code, content):
 
   
   return response
+### Start strain api ###
+def restStrainsGet(request):
+  flag = 200
+  content = {}
+  try:
+    strains = strain.objects.all()
+  except:
+    flat = 500
+    
+  if flag != 500:
+    count = 1;
+    for s in strains:
+      cageInfo = {'strainId': s.id,
+		  'strainName': s.strainName}
+      content[count] = strainInfo
+      count += 1
+
+  response = responseEncode(flag, content)
+  json = simplejson.dumps(response)
+  return HttpResponse(json, mimetype='application/json')
+
+def restStrainPost(request):
+  flag = 500
+  content = {'foo':'bar'}
+  ### Check that the perameters are GET perameters
+  if request.method == 'GET':
+    rawInput = request.GET.copy()
+    flag = 201
+
+    try:
+      strainToMake = strain(strainName=rawInput['name'])
+    except:
+      flag = 402
+
+    if flag != 400:
+      try:
+	strainToMake.save()
+      except:
+	flag = 404
+      
+  else:
+    flag = 406
+  
+  response = responseEncode(flag, content)
+  json = simplejson.dumps(response)
+  return HttpResponse(json, mimetype='application/json')
+
+
+
+def restStrainGet(request):
+  flag = 500
+  hascages = 1
+  content = {'':''}
+  ### Check that the perameters are GET perameters
+  if request.method == 'GET':
+    rawInput = request.GET.copy()
+    try:
+      cleanId = int(rawInput['id'])
+    except:
+      flag = 400
+
+    if flag != 400:
+      try:
+	strainToGet = strain.objects.get(id=cleanId)
+      except:
+	flag = 400
+
+      try:
+	cagesInStrain = cages.objects.get(strain=strainToGet)
+      except:
+	hasMice = 0
+    
+    if flag != 400:
+      content = {'id':strainToGet.id,
+		 'name': strainToGet.strainName,
+		 'hascages':hasCages}
+      flag = 200
+    else:
+      flag = 400
+  else:
+    flag = 400
+  
+  
+  response = responseEncode(flag, content)
+  json = simplejson.dumps(response)
+  return HttpResponse(json, mimetype='application/json')
+
+def restStrainDelete(request):
+  flag = 500
+  content = {'':''}
+  ### Check that the perameters are GET perameters
+  if request.method == 'GET':
+    rawInput = request.GET.copy()
+    flag = 200
+    try:
+      cleanId = int(rawInput['id'])
+    except:
+      flag = 400
+    
+    if flag == 200:
+      content = {'test':'one'}
+      try:
+	StrainToGet = strain.objects.get(id = cleanId)
+      except:
+	flag = 400
+
+    if flag == 200:
+      content = {'test':'Two'}
+      try:
+	StrainToGet.delete()
+      except:
+	flag = 400
+    
+  else:
+    flag = 400
+    content = {'test':'Three'}
+    
+  response = responseEncode(flag, content)
+  json = simplejson.dumps(response)
+  return HttpResponse(json, mimetype='application/json')
+
 
 ### Start cage api ###
 def restCagePut(request):
@@ -187,11 +312,18 @@ def restCageDelete(request):
 
 def restCagePost(request):
   flag = 500
-  content = {'':''}
+  content = {'foo':'bar'}
   ### Check that the perameters are GET perameters
   if request.method == 'GET':
     rawInput = request.GET.copy()
     flag = 201
+
+    #check that strain exists
+    try:
+      strainToAdd = strain.objects.get(strainName=rawInput['strain'])
+    except:
+      flag = 400
+
     #set IsBreeding to int
     try:
       cleanIsBreeding = int(rawInput['isBreeding'])
@@ -199,7 +331,7 @@ def restCagePost(request):
       flag = 400
 
     try:
-      cageToMake = cage(cageName=rawInput['name'],isBreeding=cleanIsBreeding)
+      cageToMake = cage(cageName=rawInput['name'],isBreeding=cleanIsBreeding, strain=strainToAdd)
     except:
       flag = 400
 
@@ -251,8 +383,7 @@ def restMouseGet(request):
 		 'cage': cageID,
 		 'genotype': mouseToGet.genotype,
 		 'genotypeTwo' : mouseToGet.genotypeTwo,
-		 'parents':mouseToGet.parents,
-		  
+		 'parents':mouseToGet.parents
 		}
 
   else:
@@ -306,19 +437,18 @@ def restMousePost(request):
     if flag != 400:
       flag = 201
       mouseToMake = mice(name=rawInput['name'],
-			 parents = rawInput['parents'],
-			 genotype = rawInput['genotype'],
-			 genotypeTwo = rawInput['genotypeTwo'],
-			 mlb = rawInput['mlb'],
-			 gender = rawInput['gender'],
-			 notes = rawInput['notes'],
-			 strain = rawInput['strain'],
-			 cage = mouseParentCage)
+        		 parents = rawInput['parents'],
+        		 genotype = rawInput['genotype'],
+        		 genotypeTwo = rawInput['genotypeTwo'],
+        		 mlb = rawInput['mlb'],
+        		 gender = rawInput['gender'],
+        		 notes = rawInput['notes'],
+        		 cage = mouseParentCage)
       
       try:
-	mouseToMake.save()
+        mouseToMake.save()
       except:
-	flag = 400
+        flag = 400
       
       if flag != 400:
 	mouseMade = mice.objects.get(name=rawInput['name']);
@@ -370,7 +500,7 @@ def restMousePut(request):
 	mouseToUpdate.genotype = rawInput['genotype']
       
       if 'genotypeTwo' in rawInput:
-	mouseToupdate.genotypeTwo = rawInput['genotypeTwo']
+	mouseToUpdate.genotypeTwo = rawInput['genotypeTwo']
       
       if 'gender' in rawInput:
 	mouseToUpdate.gender = rawInput['gender']

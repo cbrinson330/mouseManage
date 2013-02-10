@@ -2,11 +2,22 @@
 <html>
 <head>
   <title>Sortable</title>
-  <meta charset="utf-8">
-  <link href="http://fonts.googleapis.com/css?family=Gudea:400, 700" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" href="/static/css/styles.css">
+  <meta charset="utf-8"/>
+  <link href="http://fonts.googleapis.com/css?family=Gudea:400, 700" rel="stylesheet" type="text/css"></link>
+  <link rel="stylesheet" href="/static/css/styles.css"></link>
 </head>
 <body>
+ <ul class="dropdown" style="position:absolute; z-index:500;">
+   {% if strainsAll %}{% for strain in strainsAll %}
+      {% if strain.strainName == strain %}
+	<li class="strain-{{strain.id}}"><a class="selected" href="/{{strain.strainName}}">{{strain.strainName}}</a></li>
+      {% endif %}
+     <li class="strain-{{strain.id}}"><a href="/gridView/{{strain.strainName}}">{{strain.strainName}}</a><span class="destory-strain">x</span></li>
+   {% endfor %}
+   {% endif %}
+  <li class="addStrain"><input type="text" class="new-strain"/><a class="button" id="create-strain" href="#">Add Strain</a></li>
+ </ul>
+
 <header> 
   <div class="header-content"> 
     <a class="shade">&nbsp;</a>
@@ -14,7 +25,7 @@
        <a href="#mouseAdd" id="addMouseBtn" class="button">Add Mouse</a>
        <a href="#cageAdd" id="addCageBtn" class="button-two">Add Cage</a>
      </div><!-- /butn_wrapper -->
-     <h1>Curent Cages</h1>
+     <h1><span class="strain-name">{{strain}}</span></h1>
   </div><!-- /header-content -->
 </header>
 <div class="wrapper main">
@@ -40,9 +51,14 @@
     </div><!-- /cage -->
   {% else %}
     <p>No cages available</p>
+    <div class="cage" id="cage-trash">
+      <h3>Trash</h3>
+      <ul id="trash" class="droptrue"></ul>
+    </div><!-- /cage -->
   {% endif %}
   {% if mice %}
     {% for m in mice %}
+	<!-- TODO only add mice from currant strain -->
 	<a id="mouse-{{m.id}}" class="detaillink" href="#panel">&nbsp;</a>
     {% endfor %}
   {% endif %}
@@ -54,6 +70,10 @@
     <h4 class="modal-name"></h4>
     <p><span class="label">Parents:</span><br /><span class="modal-parents"></span></p>
     <p><span class="label">Genotype:</span><br /><span class="modal-genotype"></span></p>
+    <p><span class="label">Genotype Two:</span><br /><span class="modal-genotype-two"></span></p>
+    <p><span class="label">Gender:</span><br /><span class="modal-gender"></span></p>
+    <p><span class="label">MLB#:</span><br /><span class="modal-mlb"></span></p>
+    <p><span class="label">Notes:</span><br /><span class="modal-notes"></span></p>
     <p><span class="label">cage:</span><br /><span class="modal-cage"></span></p>
     <a class="flipControl">Edit</a>
   </div><!-- /front -->
@@ -64,6 +84,10 @@
       <p><label class="label">Name</label><input class="input-name" type="text" /></p>
       <p><label class="label">Parents</label><input class="input-parents" type="text" /></p>
       <p><label>Genotype</label><input class="input-genotype" type="text" /></p>
+      <p><label>GenotypeTwo</label><input class="input-genotype-two" type="text" /></p>
+      <p><label>Gender</label><select class="input-gender"><option value="Male">Male</option><option value="Female">Female</option></select></p>
+      <p><label>MLB#</label><input class="input-mlb" type="text" /></p>
+      <p><label>Notes</label><textarea class="input-notes"></textarea></p>
       <p class="clear"><a class="flipControl" id="change-mouse-detail">Save</a></p>
     </form>
   </div><!-- /back -->
@@ -76,8 +100,9 @@
     <form action="#" id="mouseCreate"> <p><label class="label">Name</label><input class="createMouse-input-name" type="text" /></p>
       <p><label class="label">Parents</label><input class="createMouse-input-parents" type="text" /></p>
       <p><label class="label">Genotype</label><input class="createMouse-input-genotype" type="text" /></p>
-      <p><label class="label">GenotypeTwo</label><input class="createMouse-input-genotypeTwo" type="text" /></p>
-      <p><label class="label">Gender</label><input class="createMouse-input-gender" type="text" /></p>
+      <p><label class="label">GenotypeTwo</label><input class="createMouse-input-genotype-two" type="text" /></p>
+      <p><label class="label">Gender</label><select class="input-gender"><option value="Male">Male</option><option value="Female">Female</option><select></p>
+      
       <p><label class="label">MLB#</label><input class="createMouse-input-mlb" type="text" /></p>
       <p><label class="label">Notes</label><input class="createMouse-input-notes" type="text" /></p>
       <p><label class="label">Cage</label><select class="createMouse-input-cage"></select></p>
@@ -98,8 +123,8 @@
   </div><!-- /back --> </div><!-- /panel --> 
 <!-- /modal windows -->
 <!-- <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script> -->
-<script type="text/javascript" src="static/scripts/jquery.js"></script>
-<script type="text/javascript" src="static/scripts/scripts.js"></script>
+<script type="text/javascript" src="/static/scripts/jquery.js"></script>
+<script type="text/javascript" src="/static/scripts/scripts.js"></script>
 <script type="text/javascript">
 	// DOCUMENT READY
 		$(document).ready(function() {
@@ -144,12 +169,12 @@
 
 			function postMove(draggedId, newCageid){
 			    if(newCageid != 'trash'){
-			      urlBuild = 'restAPI/mouse/put?';
+			      urlBuild = '/restAPI/mouse/put?';
 			      urlBuild += 'id=' + draggedId;
 			      urlBuild += '&cageId=' + newCageid;
 			    }
 			    else {
-			      urlBuild = 'restAPI/mouse/delete';
+			      urlBuild = '/restAPI/mouse/delete';
 			      urlBuild += '?id=' + draggedId;
 			    }
 			   $.ajax({
@@ -166,7 +191,7 @@
 		  $(this).css('opacity','0.5');
 		  var rawCageId = $(this).parent('.cage').attr('id');
 		  var cageId = rawCageId.split('-');
-		  var url = "restAPI/cage/delete";
+		  var url = "/restAPI/cage/delete";
 		  url += '?id='+cageId[1];
 		  if ($(this).parent('.cage').children('ul').children('li').length <= 0){
 		    $.ajax({
@@ -186,7 +211,7 @@
 
 		//HANDLE MOUSE DETAIL called from leanmodal
 		function getMouseInfo(mouseId){
-		  var url = 'restAPI/mouse/get';
+		  var url = '/restAPI/mouse/get';
 		  url += '?id='+ mouseId;
 		  $('.card h4').attr('id', mouseId);
 		  $.ajax({
@@ -200,15 +225,25 @@
 		
 	// Handle change of mouse info TODO add change cage functionality
 	      $("#change-mouse-detail").click(function(){
-		var url = 'restAPI/mouse/put';
+		var url = '/restAPI/mouse/put';
 		var name = $(".input-name").val();
 		var genotype = $('.input-genotype').val();
 		var parents = $('.input-parents').val();
+		var genotypeTwo = $('.input-genotype-two').val();
+		var gender = $('.input-gender').val();
+		var notes = $('.input-notes').val();
+		var mlb = $('.input-mlb').val();
+		
 		var mouseId = $('.back.card' + ' h4').attr('id');  
 		url += '?id='+mouseId;
 		url += '&name='+name;
 		url += '&genotype='+genotype;
 		url += '&parents='+parents;
+		url += '&genotypeTwo='+genotypeTwo;
+		url += '&gender='+gender;
+		url += '&notes='+notes;
+		url += '&mlb='+ mlb;
+		url += '&cage=4';
 		$.ajax({
 		  url:url,
 		  success: function(data){
@@ -218,7 +253,11 @@
 					      'id':mouseId,
 					      'name':name,
 					      'genotype':genotype,
-					      'parents':parents
+					      'parents':parents,
+					      'genotypeTwo':genotypeTwo,
+					      'gender':gender,
+					      'mlb':mlb,
+					      'notes':notes
 				      }};
 		      updateValues(mouseData);
 		    }
@@ -232,15 +271,15 @@
 	  // TODO make these independant use generated array instead of hardcoding values
 	  var name = $(".createMouse-input-name").val();
 	  var genotype = $(".createMouse-input-genotype").val();
-	  var genotypeTwo = $(".createMouse-input-genotypeTwo").val();
+	  var genotypeTwo = $(".createMouse-input-genotype-two").val();
 	  var gender = $(".createMouse-input-gender").val();
 	  var mlb = $(".createMouse-input-mlb").val();
 	  var notes = $(".createMouse-input-notes").val();
 	  var parents = $(".createMouse-input-parents").val();
 	  var cage = $(".createMouse-input-cage").val();
 	  if (name && cage && genotype && parents){
-	    // if they arn't missing any values
-	    var url = 'restAPI/mouse/post';
+	    // if they arnt missing any values
+	    var url = '/restAPI/mouse/post';
 	    url += '?name='+name;
 	    url += '&genotype=' + genotype;
 	    url += '&genotypeTwo=' + genotypeTwo;
@@ -249,7 +288,7 @@
 	    url += '&gender=' + gender;
 	    url += '&mlb=' + mlb;
 	    url += '&notes=' + notes;
-	    
+	    console.log(url);
 	    $.ajax({
 	      url:url,
 	      success: function(data){
@@ -296,15 +335,17 @@
 	    isBreeding = 0;
 	  }
 	  if (name){
-	    var url = 'restAPI/cage/post';
+	    var strain = $('.strain-name').text();
+	    var url = '/restAPI/cage/post';
 	    url += '?name='+name;
+	    url += '&strain='+strain;
 	    url += '&isBreeding='+isBreeding;
 	    $.ajax({
 	      url:url,
 	      success: function(data){
 		console.log(data);
 		if(data.code != "201"){
-		  
+		  console.log('bar');
 		}
 		else{
 
@@ -329,10 +370,47 @@
 		Newcage += '<ul class="droptrue ui-sortable"></ul>';
 		Newcage += '</div>';
 		$("#cage-trash").before(Newcage);
+		document.location.reload();
 		}
 	      }
 	    });
 	  }
+	});
+
+
+	$('#create-strain').click(function(){
+	  console.log('foo');
+	  var newStrain = $('.new-strain').val();
+	  if (newStrain){
+	    var url = '/restAPI/strain/post';
+	    url += '?name='+ newStrain;
+	    $.ajax({
+	      url: url,
+	      success: function(data){
+		console.log(data);
+		var strainToAdd = '<li><a href="/gridView/' + newStrain + '">' + newStrain + '<span class="destory-strain">x</span></a>';
+		$('.addStrain').before(strainToAdd);
+	      }
+	    });
+	  }
+	});
+
+	$('.destory-strain').live('click', function(){
+	  var parent = $(this).parent();
+	  var strainId = parent.attr('class');
+	  strainId = strainId.split('-');
+	  var url = '/restAPI/strain/delete';
+	  url += '?id=' + strainId[1];
+	  console.log(url);
+	  $.ajax({
+	    url: url,
+	    success: function(data){
+	      console.log(data);
+	      if(data.code == 200){
+		parent.hide();
+	      }
+	    }
+	  });
 	});
 
 	// SET UP MODALS
@@ -379,14 +457,25 @@
 			});
 		});
 		}
+
+
+
+
 	// HELPER FUNCTION FOR UPDATING VALUES IN MODAL WINDOW
 		function updateValues(data){
 		  $(".modal-name").text(data.content.name);
 		  $(".input-name").val(data.content.name);
-		  console.log(data);
 		  $("#"+data.id).text(data.content.name);
 		  $(".modal-genotype").text(data.content.genotype);
 		  $(".input-genotype").val(data.content.genotype);
+		  $(".modal-genotype-two").text(data.content.genotypeTwo);
+		  $(".input-genotype-two").val(data.content.genotypeTwo);
+		  $(".modal-gender").text(data.content.gender);
+		  $(".input-gender").val(data.content.gender);
+		  $(".modal-mlb").text(data.content.mlb);
+		  $(".input-mlb").val(data.content.mlb);
+		  $(".modal-notes").text(data.content.notes);
+		  $(".input-notes").val(data.content.notes);
 		  $(".modal-parents").text(data.content.parents); 
 		  $(".input-parents").val(data.content.parents);
 		  $(".modal-cage").text(data.content.cage);
@@ -399,7 +488,7 @@
 	    var cages;
 	    var mice;
 	    $.ajax({
-	      url:'restAPI/cages/get',
+	      url:'/restAPI/cages/get',
 	      success: function(data){
 		console.log(data);
 		cages = data.content;
@@ -413,7 +502,7 @@
 
 	    if (mouseId){
 	      $.ajax({
-		url:'restAPI/mouse/get?id='+ mouseId,
+		url:'/restAPI/mouse/get?id='+ mouseId,
 		success: function(data){
 		  console.log(data);
 		  mice = data.content;
@@ -424,7 +513,7 @@
 	  }
 
 
-	</script>
+	</script> 
       <div id="lean_overlay"></div>
     </body>
 </html>
