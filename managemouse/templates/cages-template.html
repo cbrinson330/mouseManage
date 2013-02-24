@@ -4,28 +4,29 @@
   <title>Sortable</title>
   <meta charset="utf-8"/>
   <link href="http://fonts.googleapis.com/css?family=Gudea:400, 700" rel="stylesheet" type="text/css"></link>
-  <link rel="stylesheet" href="/static/css/styles.css"></link>
+  <link rel="stylesheet" href="/static/css/style.css"></link>
 </head>
 <body>
- <ul class="dropdown" style="position:absolute; z-index:500;">
-   {% if strainsAll %}{% for strain in strainsAll %}
-      {% if strain.strainName == strain %}
-	<li class="strain-{{strain.id}}"><a class="selected" href="/{{strain.strainName}}">{{strain.strainName}}</a></li>
+  <div class="dropdown">
+    <ul>
+      {% if strainsAll %}{% for strain in strainsAll %}
+         {% if strain.strainName == strain %}
+   	<li class="strain-{{strain.id}}"><a class="selected" href="/{{strain.strainName}}">{{strain.strainName}}</a></li>
+         {% endif %}
+        <li class="strain-{{strain.id}}"><a href="/gridView/{{strain.strainName}}">{{strain.strainName}}</a><span class="destory-strain">&nbsp;</span></li>
+      {% endfor %}
       {% endif %}
-     <li class="strain-{{strain.id}}"><a href="/gridView/{{strain.strainName}}">{{strain.strainName}}</a><span class="destory-strain">x</span></li>
-   {% endfor %}
-   {% endif %}
-  <li class="addStrain"><input type="text" class="new-strain"/><a class="button" id="create-strain" href="#">Add Strain</a></li>
- </ul>
-
+     <li class="addStrain"><input type="text" class="new-strain"/><a id="create-strain" class="button" href="#">Add Strain</a></li>
+    </ul>
+    <p class="strainTab">{{strain}}<span class="icon down">&nbsp;</span></p>
+  </div><!-- /dropdown -->
 <header> 
   <div class="header-content"> 
-    <a class="shade">&nbsp;</a>
      <div class="butn_wrapper">
        <a href="#mouseAdd" id="addMouseBtn" class="button">Add Mouse</a>
-       <a href="#cageAdd" id="addCageBtn" class="button-two">Add Cage</a>
+       <a href="#cageAdd" id="addCageBtn" class="button button-two">Add Cage</a>
      </div><!-- /butn_wrapper -->
-     <h1><span class="strain-name">{{strain}}</span></h1>
+     <a href="/tableView" class="button toTableView">Table View</a>
   </div><!-- /header-content -->
 </header>
 <div class="wrapper main">
@@ -126,65 +127,69 @@
 <script type="text/javascript" src="/static/scripts/jquery.js"></script>
 <script type="text/javascript" src="/static/scripts/scripts.js"></script>
 <script type="text/javascript">
-	// DOCUMENT READY
-		$(document).ready(function() {
+  // DOCUMENT READY
+  $(document).ready(function() {
 			
-			
-		  // handle mouse move to new cage or trash
-			detailLinkPos();
-  			var draggedId;
-			var newCageId;
-			var counter = 0;
-			$(".draggable").draggable({
-				connectToSortable:"ul.droptrue",
-				helper:"clone",
-				revert:"invalid"
-			});
-			
-			
-			$("ul.droptrue").sortable({
-				connectWith: "ul.droptrue",
-				placeholder: 'ui-state-highlight',
-				start: function(event ,ui){
-					draggedId = ui.item.context.classList[0];
-					var draggedIdHolder = draggedId.split("-");
-					draggedId = draggedIdHolder[1];
-					$(".detaillink").fadeOut("fast");
-				},
-				deactivate: function(event, ui){
-				 	detailLinkPos();// RECALCULATE LINK POSITIONS AFTER A MOVE.
-				},
-				update: function(event, ui){
-				  counter++;
-				  if (counter == 2){
-				    var droppedId = $(this).attr('id');
-				    var rawCageId = $(this).parents('div').attr('id');
-				    var cageidholder = rawCageId.split("-");
-				    newCageId = cageidholder[1];
-				    postMove(draggedId, newCageId);
-				    counter = 0;
-				  }
-				}
-			});	
+    // handle mouse move to new cage or trash
+    detailLinkPos();
+    var draggedId;
+    var newCageId;
+    var counter = 0;
+    $(".draggable").draggable({
+      connectToSortable:"ul.droptrue",
+      helper:"clone",
+      revert:"invalid"
+    });
+	
+    $("ul.droptrue").sortable({
+      connectWith: "ul.droptrue",
+      placeholder: 'ui-state-highlight',
+      start: function(event ,ui){
+	draggedId = ui.item.context.classList[0];
+	var draggedIdHolder = draggedId.split("-");
+	draggedId = draggedIdHolder[1];
+	$(".detaillink").fadeOut("fast");
+      },
+      deactivate: function(event, ui){
+	detailLinkPos();// RECALCULATE LINK POSITIONS AFTER A MOVE.
+      },
+      update: function(event, ui){
+	counter++;
+	if (counter == 2){
+	  var droppedId = $(this).attr('id');
+	  var rawCageId = $(this).parents('div').attr('id');
+	  var cageidholder = rawCageId.split("-");
+	  newCageId = cageidholder[1];
+	  postMove(draggedId, newCageId);
+	  counter = 0;
+	}
+      }
+    });	
 
-			function postMove(draggedId, newCageid){
-			    if(newCageid != 'trash'){
-			      urlBuild = '/restAPI/mouse/put?';
-			      urlBuild += 'id=' + draggedId;
-			      urlBuild += '&cageId=' + newCageid;
-			    }
-			    else {
-			      urlBuild = '/restAPI/mouse/delete';
-			      urlBuild += '?id=' + draggedId;
-			    }
-			   $.ajax({
-			     url: urlBuild,
-			     success: function(data){
-			       console.log(data);
-			     }
-			  });// end ajax
-			}//postMove 
-		});
+    function postMove(draggedId, newCageid){
+      if(newCageid != 'trash'){
+	urlBuild = '/restAPI/mouse/put?';
+	urlBuild += 'id=' + draggedId;
+	urlBuild += '&cageId=' + newCageid;
+      }
+      else {
+	urlBuild = '/restAPI/mouse/delete';
+	urlBuild += '?id=' + draggedId;
+      }
+      $.ajax({
+	url: urlBuild,
+	success: function(data){
+	  console.log(data);
+	}
+      });// end ajax
+    }//postMove 
+    
+    $('.dropdown ul').hide();
+  });// end document ready
+
+  $('.strainTab').click(function(){
+    $('.dropdown ul').slideToggle();
+  });
 
 		// HANDLE CAGE DELETE
 		$('.cage .close').live('click',function(){
