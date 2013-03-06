@@ -16,6 +16,14 @@ def init(request, strainSelected):
 							  'mice': m,
 							  'strain':strainSelected,
 							  'strainsAll':s})
+
+def gridView(request):	
+  s = strain.objects.all()
+  return render_to_response('cages-template.html', {'strainsAll':s})
+
+def dashboard(request):
+  return render_to_response('dashboard.html')
+  
 def tableView(request):
   m = mice.objects.all()
   return render_to_response('tableView.html', {'mice':m})

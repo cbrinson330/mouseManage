@@ -2,7 +2,7 @@ from django.conf.urls.defaults import patterns, include, url
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
-from managemouse.views import init, restStrainPost, restStrainsGet, restStrainGet, restStrainDelete, restCagePut, restCageGet, restCagesGet, restCagePost, restCageDelete, restMouseGet, restMousePost, restMouseDelete, restMousePut, tableView
+from managemouse.views import init, restStrainPost, restStrainsGet, restStrainGet, restStrainDelete, restCagePut, restCageGet, restCagesGet, restCagePost, restCageDelete, restMouseGet, restMousePost, restMouseDelete, restMousePut, tableView, dashboard, gridView
 admin.autodiscover()
 
 urlpatterns = patterns('',
@@ -22,8 +22,9 @@ urlpatterns = patterns('',
 
     # Examples:
     # Main page
+	url('^gridViews', gridView),
 	url('^gridView/(?P<strainSelected>.+)/', init),
-	#url(r'^$', initTest),
+	url(r'^$', dashboard),
 	
     # Table View
 	url('^tableView', tableView),

@@ -18,7 +18,7 @@
       {% endif %}
      <li class="addStrain"><input type="text" class="new-strain"/><a id="create-strain" class="button" href="#">Add Strain</a></li>
     </ul>
-    <p class="strainTab">{{strain}}<span class="icon down">&nbsp;</span></p>
+    <p class="strainTab"><span class="strainName">{{strain}}</span><span class="icon down">&nbsp;</span></p>
   </div><!-- /dropdown -->
 <header> 
   <div class="header-content"> 
@@ -51,7 +51,7 @@
       <ul id="trash" class="droptrue"></ul>
     </div><!-- /cage -->
   {% else %}
-    <p>No cages available</p>
+    <p>This Strain has no cages please add a cage or select a new cage</p>
     <div class="cage" id="cage-trash">
       <h3>Trash</h3>
       <ul id="trash" class="droptrue"></ul>
@@ -107,7 +107,8 @@
       <p><label class="label">MLB#</label><input class="createMouse-input-mlb" type="text" /></p>
       <p><label class="label">Notes</label><input class="createMouse-input-notes" type="text" /></p>
       <p><label class="label">Cage</label><select class="createMouse-input-cage"></select></p>
-      <p class="clear"><a class="flipControl" id="create-mouse">Save</a></p>
+      <p class="clear">&nbsp;</p>
+      <p><a class="flipControl" id="create-mouse">Save</a></p>
     </form>
   </div><!-- /back -->
 </div><!-- /panel -->
@@ -119,7 +120,8 @@
     <form action="#" id="cageCreate">
       <p><label>Name</label><input class="createCage-input-name" type="text" /></p>
       <p><label class="label">is Breeding<input class="createCage-input-isBreeding" name="isbreeding-checkbox" value="true" type="checkbox" /></p>
-      <p class="clear"><a class="flipControl" id="create-cage">Save</a></p>
+      <p class="clear">&nbsp;</p>
+      <p><a class="flipControl" id="create-cage">Save</a></p>
     </form>
   </div><!-- /back --> </div><!-- /panel --> 
 <!-- /modal windows -->
@@ -333,6 +335,8 @@
 	  var isBreeding;
 	  //check that all required inputs have a value
 	  var name = $(".createCage-input-name").val();
+	  var strain = $('.strainName').text();
+	  console.log(strain);
 	  if($('.createCage-input-isBreeding:checked').length > 0){
 	    isBreeding = 1;
 	  }
@@ -340,7 +344,6 @@
 	    isBreeding = 0;
 	  }
 	  if (name){
-	    var strain = $('.strain-name').text();
 	    var url = '/restAPI/cage/post';
 	    url += '?name='+name;
 	    url += '&strain='+strain;
@@ -351,6 +354,7 @@
 		console.log(data);
 		if(data.code != "201"){
 		  console.log('bar');
+		  console.log(url);
 		}
 		else{
 
@@ -421,19 +425,19 @@
 	// SET UP MODALS
 		$(".detaillink").leanModal({ 
 			top : 50, 
-			overlay : 0.7, 
+			overlay : 0.8, 
 			closeButton: ".modal-close" 
 			});
 			
 		$("#addMouseBtn").leanModal({ 
 			top : 50, 
-			overlay : 0.7, 
+			overlay : 0.8, 
 			closeButton: ".modal-close" 
 			});
 			
 		$("#addCageBtn").leanModal({ 
 			top : 50, 
-			overlay : 0.7, 
+			overlay : 0.8, 
 			closeButton: ".modal-close" 
 			});
 	
